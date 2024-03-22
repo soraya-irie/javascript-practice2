@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(document).ready(function () {
     let currentInput = '';
     // displayクラスを持つ要素を変数に保存
     let display = $('.display');
@@ -12,12 +12,22 @@ $(document).ready(function() {
         const lastChar = currentInput.slice(-1);
         const isLastCharOperator = isOperator(lastChar); // 真偽値
         const isLastCharDecimal = lastChar === '.'; // 真偽値
-        
-        if ((currentInput === '' || currentInput === '0') && (value === '00' || value === '0')) {
+
+        const lastOperatorIndex = Math.max(...['+', '-', '*', '/'].map(op => currentInput.lastIndexOf(op)));
+        const hasDecimalAfterLastOperator = currentInput.slice(lastOperatorIndex + 1).includes('.');
+
+        if (currentInput === '' && value === '.') {
+            // 最初の入力で0から始まる小数を入力できるようにする
+            currentInput = '0';
+        } else if (isLastCharOperator && value === '00') {
+            // 演算子の後ろに００を入力するのを防ぐ
+            return;
+        }
+        else if ((currentInput === '' || currentInput === '0') && (value === '00' || value === '0')) {
             // 先頭に0または00の追加を防ぐ
             return;
-        } else if (currentInput === '' && (isOperator(value) || value === '.')) {
-            // 最初の入力で演算子または小数点が来た場合は無視
+        } else if (currentInput === '' && isOperator(value)) {
+            // 最初の入力で演算子が来た場合は無視
             return;
         } else if (currentInput === '0' && value !== '.') {
             // 先頭が0で次に来るのが.以外なら0を削除
@@ -28,8 +38,8 @@ $(document).ready(function() {
         } else if ((value === '.' && isLastCharOperator) || (isOperator(value) && isLastCharDecimal)) {
             // 演算子の後や小数点の後に小数点または演算子が来るのを防ぐ
             return;
-        } else if (value === '.' && currentInput.includes('.') && !isLastCharOperator) {
-            // 小数点の重複入力を防ぐ（ただし演算子によって区切られている場合は許可）
+        } else if (value === '.' && hasDecimalAfterLastOperator) {
+            // 更新: 演算子によって区切られている場合を除いて、小数点の重複入力を防ぐ
             return;
         }
         currentInput += value;
@@ -41,7 +51,7 @@ $(document).ready(function() {
         return ['+', '-', '*', '/'].includes(char);
     }
 
-    $('.button').click(function() {
+    $('.button').click(function () {
         const value = $(this).text();
         if (value === 'AC') {
             currentInput = '';
